@@ -1,2 +1,3 @@
 from .doctors import doctors
-from routes.patients import patients
+from .appointments import appointments_bp
+from .patients import patients_bp

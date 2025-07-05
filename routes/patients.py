@@ -1,36 +1,37 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request, jsonify
 from models.patient import Patient
-from database import db  # <-- FIXED
+from database import db
 
-patients = Blueprint('patients', __name__)
+patients_bp = Blueprint('patients', __name__, url_prefix='/patients')
 
-@patients.route('/patients', methods=['GET'])
+# Create a new patient
+@patients_bp.route('/', methods=['POST'])
+def create_patient():
+    data = request.get_json()
+    new_patient = Patient(
+        name=data.get('name'),
+        age=data.get('age'),
+        email=data.get('email')
+    )
+    db.session.add(new_patient)
+    db.session.commit()
+
+    return jsonify({
+        'id': new_patient.id,
+        'name': new_patient.name,
+        'age': new_patient.age,
+        'email': new_patient.email
+    }), 201
+
+# Get all patients
+@patients_bp.route('/', methods=['GET'])
 def get_patients():
     patients = Patient.query.all()
     return jsonify([
         {
             'id': p.id,
             'name': p.name,
-            'date_of_birth': p.date_of_birth,
-            'email': p.email,
-            'created_at': p.created_at
+            'age': p.age,
+            'email': p.email
         } for p in patients
     ])
-
-@patients.route('/patients', methods=['POST'])
-def create_patient():
-    data = request.get_json()
-    new_patient = Patient(
-        name=data['name'],
-        date_of_birth=data['date_of_birth'],
-        email=data['email']
-    )
-    db.session.add(new_patient)
-    db.session.commit()
-    return jsonify({
-        'id': new_patient.id,
-        'name': new_patient.name,
-        'date_of_birth': new_patient.date_of_birth,
-        'email': new_patient.email,
-        'created_at': new_patient.created_at
-    }), 201

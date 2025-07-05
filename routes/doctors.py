@@ -1,36 +1,42 @@
 # routes/doctors.py
+
 from flask import Blueprint, jsonify, request
 from models.doctor import Doctor
 from database import db
 
-doctors = Blueprint('doctors', __name__)
+# Create a Blueprint for doctors
+doctors = Blueprint('doctors', __name__, url_prefix='/doctors')
 
-@doctors.route('/doctors', methods=['GET'])
+# GET /doctors - list all doctors
+@doctors.route('/', methods=['GET'])
 def get_doctors():
-    doctors = Doctor.query.all()
+    all_doctors = Doctor.query.all()
     return jsonify([
         {
-            'id': d.id,
-            'name': d.name,
-            'specialty': d.specialty,
-            'email': d.email,
-            'created_at': d.created_at,
-            'appointments': []
-        } for d in doctors
-    ])
+            'id': doctor.id,
+            'name': doctor.name,
+            'specialty': doctor.specialty,
+            'email': doctor.email,
+            'appointments': []  # optionally add appointments if needed
+        }
+        for doctor in all_doctors
+    ]), 200
 
-@doctors.route('/doctors', methods=['POST'])
+# POST /doctors - create a new doctor
+@doctors.route('/', methods=['POST'])
 def create_doctor():
     data = request.get_json()
 
-    existing_doctor = Doctor.query.filter_by(email=data['email']).first()
+    # Check if doctor with the same email exists
+    existing_doctor = Doctor.query.filter_by(email=data.get('email')).first()
     if existing_doctor:
         return jsonify({'error': 'Email already exists'}), 400
 
+    # Create new doctor
     new_doctor = Doctor(
-        name=data['name'],
-        specialty=data['specialty'],
-        email=data['email']
+        name=data.get('name'),
+        specialty=data.get('specialty'),
+        email=data.get('email')
     )
 
     db.session.add(new_doctor)
@@ -41,6 +47,5 @@ def create_doctor():
         'name': new_doctor.name,
         'specialty': new_doctor.specialty,
         'email': new_doctor.email,
-        'created_at': new_doctor.created_at,
         'appointments': []
     }), 201

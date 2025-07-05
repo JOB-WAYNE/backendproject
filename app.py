@@ -9,7 +9,6 @@ def create_app():
     init_db(app)
 
     CORS(app)
-
     migrate = Migrate(app, db)
 
     @app.route('/')
@@ -27,13 +26,15 @@ def create_app():
     # ✅ Import and register blueprints
     from routes.doctors import doctors
     from routes.appointments import appointments_bp
+    from routes.patients import patients_bp  # ✅ Added patients blueprint
 
     app.register_blueprint(doctors)
     app.register_blueprint(appointments_bp)
+    app.register_blueprint(patients_bp)  # ✅ Register patients route
 
     return app
 
-# ✅ Add this to run the app if this file is executed directly
+# ✅ Run the app
 if __name__ == '__main__':
     app = create_app()
     app.run(debug=True)
